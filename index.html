@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gündeme | لعبة السيطرة على الترند والأجندة الإعلامية</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(18, 24, 38, 0.85);
+      --accent: #ff2e63;
+      --accent-glow: rgba(255, 46, 99, 0.4);
+      --cyan: #08d9d6;
+      --gold: #f9d342;
+      --text: #eaeaea;
+      --text-muted: #8c9ba5;
+      --border: rgba(255, 255, 255, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: radial-gradient(circle at 50% 20%, #151e33 0%, var(--bg) 80%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Breaking News Ticker */
+    .ticker-bar {
+      background: linear-gradient(90deg, #b00020, #e63946);
+      color: white;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 4px 15px rgba(230, 57, 70, 0.3);
+      z-index: 100;
+    }
+    .ticker-badge {
+      background: black;
+      padding: 3px 10px;
+      border-radius: 4px;
+      letter-spacing: 1px;
+      animation: pulse 1.5s infinite;
+      white-space: nowrap;
+    }
+    .ticker-text {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    /* Header & Stats */
+    header {
+      padding: 16px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+      background: rgba(9, 13, 22, 0.7);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .brand h1 {
+      font-family: 'Orbitron', 'Cairo', sans-serif;
+      font-size: 1.6rem;
+      letter-spacing: 2px;
+      color: var(--cyan);
+      text-shadow: 0 0 12px rgba(8, 217, 214, 0.5);
+    }
+    .stats-bar {
+      display: flex;
+      gap: 16px;
+    }
+    .stat-box {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 16px;
+      display: flex;
+      flex-direction: column;
+      min-width: 110px;
+      transition: all 0.3s ease;
+    }
+    .stat-title {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .stat-val {
+      font-size: 1.1rem;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .stat-followers { color: var(--cyan); }
+    .stat-credibility { color: var(--gold); }
+    .stat-budget { color: #4ecca3; }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      max-width: 1000px;
+      width: 100%;
+      margin: 20px auto;
+      padding: 0 16px;
+      display: grid;
+      grid-template-columns: 1.3fr 0.9fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 850px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Event Card */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(16px);
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--cyan));
+    }
+
+    .image-container {
+      width: 100%;
+      height: 240px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #111;
+      position: relative;
+      border: 1px solid var(--border);
+    }
+    .image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+    .image-loader {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(10, 15, 25, 0.9);
+      color: var(--cyan);
+      font-size: 0.9rem;
+      gap: 10px;
+    }
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(8, 217, 214, 0.2);
+      border-top-color: var(--cyan);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    .event-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .event-tag {
+      background: rgba(255, 46, 99, 0.2);
+      color: var(--accent);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .audio-btn {
+      background: rgba(8, 217, 214, 0.15);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .audio-btn:hover {
+      background: var(--cyan);
+      color: #000;
+      transform: scale(1.08);
+    }
+
+    .event-title {
+      font-size: 1.4rem;
+      font-weight: 900;
+      line-height: 1.4;
+      color: #fff;
+    }
+    .event-desc {
+      color: var(--text-muted);
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+
+    /* Action Choices */
+    .choices-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 8px;
+    }
+    .choice-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px 18px;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      cursor: pointer;
+      text-align: right;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .choice-btn:hover {
+      background: rgba(8, 217, 214, 0.1);
+      border-color: var(--cyan);
+      transform: translateY(-2px);
+    }
+    .choice-impact {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      gap: 12px;
+    }
+
+    /* Live Social Reactions Sidebar */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .social-feed {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-height: 480px;
+      overflow-y: auto;
+    }
+    .social-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--cyan);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .tweet {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 10px;
+      padding: 12px;
+      display: flex;
+      gap: 10px;
+      animation: fadeIn 0.4s ease;
+    }
+    .tweet-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .tweet-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .tweet-user {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .tweet-text {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Game Over Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal {
+      background: #162032;
+      border: 1px solid var(--accent);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 450px;
+      width: 90%;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: 0 0 50px var(--accent-glow);
+    }
+    .modal h2 {
+      font-size: 1.8rem;
+      color: var(--accent);
+    }
+    .restart-btn {
+      background: var(--cyan);
+      color: #000;
+      border: none;
+      padding: 12px 24px;
+      font-size: 1.1rem;
+      font-weight: 900;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+    .restart-btn:hover {
+      box-shadow: 0 0 20px rgba(8, 217, 214, 0.6);
+      transform: scale(1.05);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Breaking News Ticker -->
+  <div class="ticker-bar">
+    <div class="ticker-badge">🔴 عاجل GÜNDEM</div>
+    <div class="ticker-text" id="tickerText">أهلاً بك في غرفة الأخبار المركزية. الترند العالمي تحت سيطرتك الآن!</div>
+  </div>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <h1>GÜNDEME</h1>
+      <span style="font-size: 0.8rem; color: var(--accent); font-weight: bold; border: 1px solid var(--accent); padding: 2px 6px; border-radius: 4px;">TREND CONTROL</span>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat-box">
+        <span class="stat-title">المتابعون</span>
+        <span class="stat-val stat-followers" id="valFollowers">👥 500K</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-title">المصداقية</span>
+        <span class="stat-val stat-credibility" id="valCredibility">⭐ 75%</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-title">الميزانية</span>
+        <span class="stat-val stat-budget" id="valBudget">💰 $100K</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Game Area -->
+  <main>
+    <div class="card">
+      <div class="image-container">
+        <img id="newsImage" src="" alt="صورة الخبر" style="display: none;" onload="onImageLoaded()" onerror="onImageError()">
+        <div class="image-loader" id="imageLoader">
+          <div class="spinner"></div>
+          <span id="loaderMsg">جاري توليد الصورة بالذكاء الاصطناعي بدقة عالية...</span>
+        </div>
+      </div>
+
+      <div class="event-header">
+        <div>
+          <span class="event-tag" id="eventCategory">تكنولوجيا وذكاء اصطناعي</span>
+          <h2 class="event-title" id="eventTitle">عنوان الخبر العاجل</h2>
+        </div>
+        <button class="audio-btn" id="btnAudio" title="استمع للبث الصوتي">🔊</button>
+      </div>
+
+      <p class="event-desc" id="eventDesc">
+        تفاصيل الخبر والحدث الذي يهدد استقرار الرأي العام...
+      </p>
+
+      <div class="choices-container" id="choicesContainer">
+        <!-- الخيارات تظهر هنا ديناميكياً -->
+      </div>
+    </div>
+
+    <!-- Live Social Feed -->
+    <div class="sidebar">
+      <div class="social-feed">
+        <div class="social-title">
+          <span>ردود فعل الجمهور (Live Feed)</span>
+          <span style="font-size: 0.75rem; color: var(--accent); font-weight: normal;">#GündemeTrending</span>
+        </div>
+        <div id="tweetsContainer" style="display: flex; flex-direction: column; gap: 10px;">
+          <!-- التغريدات تضاف ديناميكياً -->
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal GameOver / Victory -->
+  <div class="modal-overlay" id="gameOverModal">
+    <div class="modal">
+      <h2 id="modalTitle">نهاية اللعبة</h2>
+      <p id="modalDesc">لقد فقدت السيطرة على الرأي العام!</p>
+      <button class="restart-btn" onclick="restartGame()">إعادة المحاولة من جديد 🔄</button>
+    </div>
+  </div>
+
+  <script>
+    // Audio Synthesizer (Web Audio API)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      const now = audioCtx.currentTime;
+
+      if (type === 'breaking') {
+        // High alert double beep
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(800, now);
+        osc.frequency.setValueAtTime(1200, now + 0.1);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      } else if (type === 'decision') {
+        // Crisp click
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(220, now + 0.15);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      } else if (type === 'gameover') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.linearRampToValueAtTime(100, now + 0.8);
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+        osc.start(now);
+        osc.stop(now + 0.8);
+      }
+    }
+
+    // Text to Speech
+    function speakText(text) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'ar-SA';
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // Game State
+    let state = {
+      followers: 500, // in thousands
+      credibility: 75, // percentage
+      budget: 100, // in thousands
+      currentRound: 0
+    };
+
+    // Scenarios Bank
+    const scenarios = [
+      {
+        category: "ذكاء اصطناعي وأمن رقمي",
+        title: "تسريب شفرة نموذج ذكاء اصطناعي فائق!",
+        desc: "شركة كبرى تدعي أن نموذجها الخارق قادر على اختراق كل تشفير في العالم قد تسرب كوده على الإنترنت، والجمهور في حالة ذعر عارم.",
+        imagePrompt: "cyberpunk server room on fire, mysterious ai code leaking, neon red warning screens, photorealistic, cinematic lighting, 8k",
+        choices: [
+          {
+            text: "نشر تحقيق تقني حصري يثبت أن التسريب خدعة تسويقية مدبرة",
+            impact: "مصداقية +10% | ميزانية -$15K | متابعون +50K",
+            apply: () => { state.credibility += 10; state.budget -= 15; state.followers += 50; },
+            reaction: "خبير تقني: تغطية مهنية ورصينة، كشفتم الحقيقة!"
+          },
+          {
+            text: "عنوان مثير: 'نهاية عصر الخصوصية!' لجمع ملايين المشاهدات",
+            impact: "متابعون +200K | مصداقية -20% | أرباح إعلانية +$40K",
+            apply: () => { state.followers += 200; state.credibility -= 20; state.budget += 40; },
+            reaction: "متابع: عنوانكم سبب لي نوبة ذعر، لكن الموضوع مشوق!"
+          },
+          {
+            text: "تجاهل الخبر والتركيز على أخبار الطقس والرياضة",
+            impact: "متابعون -50K | لا تغيير في الميزانية",
+            apply: () => { state.followers -= 50; state.credibility -= 5; },
+            reaction: "ناشط رقمي: أين أنتم من أحداث الساعة؟ شبكة نائمة!"
+          }
+        ]
+      },
+      {
+        category: "فضاء واكتشافات",
+        title: "إشارة غامضة من أعماق مجرة أندروميدا!",
+        desc: "تلسكوب فضائي عملاق يلتقط نمطاً متكرراً من موجات الراديو لا يمكن تفسيره طبيعياً، والعلماء يتجادلون حول كونه حضارة ذكية.",
+        imagePrompt: "deep space observatory telescope looking at glowing spiral galaxy and mysterious radio signal, cinematic, ultra-detailed, unreal engine 5",
+        choices: [
+          {
+            text: "استضافة أبرز علماء الفلك في بث مباشر حصري لتحليل الإشارة",
+            impact: "مصداقية +15% | متابعون +120K | ميزانية -$20K",
+            apply: () => { state.credibility += 15; state.followers += 120; state.budget -= 20; },
+            reaction: "أستاذ فيزياء: شكراً لتسليط الضوء على العلم الحقيقي بعيداً عن التهويل."
+          },
+          {
+            text: "مانشيت أحمر: 'الكائنات الفضائية في طريقها إلينا!'",
+            impact: "متابعون +300K | مصداقية -25% | ميزانية +$50K",
+            apply: () => { state.followers += 300; state.credibility -= 25; state.budget += 50; },
+            reaction: "شخص خائف: هل يجب أن نبدأ بتخزين المؤن؟! نشرتكم مرعبة!"
+          }
+        ]
+      },
+      {
+        category: "اقتصاد وأسواق",
+        title: "انهيار مفاجئ في بورصة العملات الرقمية!",
+        desc: "أكبر منصة تداول تعلن تعليق السحوبات وسط شائعات عن إفلاس مؤسسها واختفاء مليارات الدولارات.",
+        imagePrompt: "stock market crash, crypto charts plunging red, panicked brokers on trading floor, photorealistic dramatic news photo",
+        choices: [
+          {
+            text: "نشر تسريبات ووثائق داخلية تثبت تلاعب المنصة بأموال المودعين",
+            impact: "مصداقية +20% | متابعون +150K | ميزانية -$10K",
+            apply: () => { state.credibility += 20; state.followers += 150; state.budget -= 10; },
+            reaction: "مستثمر متضرر: صحافتكم الشجاعة هي الوحيدة التي تحمينا."
+          },
+          {
+            text: "قبول رعاية مدفوعة من المنصة لنشر بيان تطميني للجمهور",
+            impact: "ميزانية +$80K | مصداقية -30% | متابعون -70K",
+            apply: () => { state.budget += 80; state.credibility -= 30; state.followers -= 70; },
+            reaction: "محلل مالي: خنتم ثقة جمهوركم ببيان مدفوع الأجر، عار عليكم!"
+          }
+        ]
+      },
+      {
+        category: "بيئة ومناخ",
+        title: "اكتشاف ينبوع طاقة نظيفة مجانية وغير محدودة في القطب الشمالي!",
+        desc: "فريق استكشافي يعلن عن تقنية ثورية تعتمد على المجال المغناطيسي قد تقضي على الحاجة للوقود الأحفوري إلى الأبد.",
+        imagePrompt: "arctic glowing magnetic energy portal surrounded by glaciers and scientists, cinematic visual, futuristic clean tech",
+        choices: [
+          {
+            text: "إرسال بعثة إعلامية خاصة للقطب لتوثيق الاختراع بالصوت والصورة",
+            impact: "مصداقية +25% | ميزانية -$35K | متابعون +180K",
+            apply: () => { state.credibility += 25; state.budget -= 35; state.followers += 180; },
+            reaction: "جمعية حماية الكوكب: أعظم تغطية بيئية في التاريخ الحديث!"
+          },
+          {
+            text: "بيع حقوق التغطية الحصرية لشركة نفطية عملاقة لإخفاء الخبر",
+            impact: "ميزانية +$150K | مصداقية -40% | متابعون -100K",
+            apply: () => { state.budget += 150; state.credibility -= 40; state.followers -= 100; },
+            reaction: "صحفي مستقل: لماذا تم شطب الخبر من موقعكم فجأة؟ رائحة الفساد فاحت!"
+          }
+        ]
+      }
+    ];
+
+    function updateUI() {
+      document.getElementById('valFollowers').textContent = `👥 ${state.followers}K`;
+      document.getElementById('valCredibility').textContent = `⭐ ${state.credibility}%`;
+      document.getElementById('valBudget').textContent = `💰 $${state.budget}K`;
+
+      // Check GameOver conditions
+      if (state.credibility <= 0) {
+        endGame("فقدت المصداقية بالكامل! تصنيفك أصبح 'إعلام أصفر مضلل' وقاطعك المتابعون.");
+      } else if (state.budget <= 0) {
+        endGame("أعلنت إفلاس مؤسستك الإعلامية! لم تعد قادراً على دفع رواتب المحررين وسيرفرات البث.");
+      } else if (state.followers <= 50) {
+        endGame("تراجع المتابعون إلى الصفر تقريباً وأغلقت القناة أبوابها لغياب الجمهور.");
+      }
+    }
+
+    function loadEvent(index) {
+      playSound('breaking');
+      const scn = scenarios[index % scenarios.length];
+
+      document.getElementById('eventCategory').textContent = scn.category;
+      document.getElementById('eventTitle').textContent = scn.title;
+      document.getElementById('eventDesc').textContent = scn.desc;
+      document.getElementById('tickerText').textContent = `🔴 عاجل: ${scn.title} - تابع التطورات حصرياً معنا!`;
+
+      // Load Multimedia Image via Pollinations FLUX
+      const img = document.getElementById('newsImage');
+      const loader = document.getElementById('imageLoader');
+      img.style.display = 'none';
+      loader.style.display = 'flex';
+      
+      const seed = Math.floor(Math.random() * 100000);
+      const encodedPrompt = encodeURIComponent(scn.imagePrompt);
+      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=800&height=400&model=flux&seed=${seed}&nologo=true`;
+      
+      img.src = imageUrl;
+
+      // Audio setup
+      document.getElementById('btnAudio').onclick = () => {
+        speakText(`${scn.title}. ${scn.desc}`);
+      };
+
+      // Choices
+      const container = document.getElementById('choicesContainer');
+      container.innerHTML = '';
+
+      scn.choices.forEach((c) => {
+        const btn = document.createElement('button');
+        btn.className = 'choice-btn';
+        btn.innerHTML = `
+          <strong>${c.text}</strong>
+          <span class="choice-impact">${c.impact}</span>
+        `;
+        btn.onclick = () => {
+          playSound('decision');
+          c.apply();
+          addTweet(c.reaction);
+          state.currentRound++;
+          updateUI();
+          if (state.credibility > 0 && state.budget > 0 && state.followers > 50) {
+            loadEvent(state.currentRound);
+          }
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function onImageLoaded() {
+      document.getElementById('imageLoader').style.display = 'none';
+      document.getElementById('newsImage').style.display = 'block';
+    }
+
+    function onImageError() {
+      document.getElementById('loaderMsg').textContent = "تم تحميل المعاينة الرسومية للخبر البديل.";
+    }
+
+    function addTweet(text) {
+      const tweetsContainer = document.getElementById('tweetsContainer');
+      const tweet = document.createElement('div');
+      tweet.className = 'tweet';
+      const names = ["أحمد المنصور", "سارة التقنية", "د. خالد", "مراقب ترند", "صوت الشارع"];
+      const randName = names[Math.floor(Math.random() * names.length)];
+      tweet.innerHTML = `
+        <div class="tweet-avatar">${randName[0]}</div>
+        <div class="tweet-body">
+          <span class="tweet-user">${randName}</span>
+          <span class="tweet-text">${text}</span>
+        </div>
+      `;
+      tweetsContainer.prepend(tweet);
+    }
+
+    function endGame(reason) {
+      playSound('gameover');
+      document.getElementById('modalTitle').textContent = "⚠️ انتهت اللعبة";
+      document.getElementById('modalDesc').textContent = reason;
+      document.getElementById('gameOverModal').style.display = 'flex';
+    }
+
+    function restartGame() {
+      state = {
+        followers: 500,
+        credibility: 75,
+        budget: 100,
+        currentRound: 0
+      };
+      document.getElementById('gameOverModal').style.display = 'none';
+      document.getElementById('tweetsContainer').innerHTML = '';
+      updateUI();
+      loadEvent(0);
+    }
+
+    // Start game on load
+    updateUI();
+    loadEvent(0);
+  </script>
+</body>
+</html>
